@@ -1,36 +1,235 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Juntos na Aventura — Front-end
 
-## Getting Started
+Aplicação desenvolvida em **Next.js + TypeScript + Tailwind CSS** para gerenciamento de aventuras em grupo com tarifação dinâmica baseada na quantidade de participantes.
 
-First, run the development server:
+A plataforma permite:
+- visualizar aventuras disponíveis
+- realizar reservas individuais
+- compartilhar links públicos da viagem
+- acompanhar formação de grupos em tempo real
+- visualizar redução progressiva de preços conforme o grupo cresce
+
+---
+
+# Tecnologias Utilizadas
+
+## Front-end
+- Next.js 16 (App Router)
+- React
+- TypeScript
+- Tailwind CSS v4
+- Radix UI
+- lucide-react
+
+## Gerenciamento de Estado e Formulários
+- zustand
+- react-hook-form
+- zod
+
+## UX/UI
+- sonner
+- next-themes
+
+## Qualidade de Código
+- ESLint
+- eslint-config-next
+
+---
+
+# Funcionalidades
+
+## Cadastro e Exibição de Aventuras
+- Listagem de aventuras disponíveis
+- Exibição de destino, datas e vagas
+- Exibição de preços dinâmicos
+
+## Reserva de Viajante
+- Cadastro de:
+  - Nome
+  - E-mail
+  - WhatsApp
+- Reserva vinculada à aventura
+
+## Compartilhamento Público
+- Geração de link compartilhável
+- Página pública da aventura
+- Atualização dinâmica da formação do grupo
+
+## Tarifação Dinâmica
+
+O valor por pessoa diminui conforme novas reservas entram no grupo.
+
+| Pessoas | Valor por Pessoa |
+|----------|------------------|
+| 1 pessoa | R$ 4.000 |
+| 2 pessoas | R$ 3.200 |
+| 3 pessoas | R$ 2.700 |
+| 4 pessoas | R$ 2.300 |
+
+---
+
+# Requisitos
+
+- Node.js 20+
+- npm
+
+---
+
+# Instalação
+
+Clone o repositório:
+
+```bash
+git clone <url-do-repositorio>
+```
+
+Acesse a pasta do projeto:
+
+```bash
+cd front-desafio-juntos-na-aventura
+```
+
+Instale as dependências:
+
+```bash
+npm install
+```
+
+---
+
+# Configuração
+
+Crie um arquivo `.env.local` na raiz do projeto:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3333
+```
+
+Ajuste a URL conforme a porta utilizada pela API.
+
+---
+
+# Executando o Projeto
+
+Inicie o ambiente de desenvolvimento:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+A aplicação ficará disponível em:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```txt
+http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+# Estrutura do Projeto
 
-To learn more about Next.js, take a look at the following resources:
+```txt
+src/
+ ├── app/
+ ├── components/
+ ├── services/
+ ├── hooks/
+ ├── store/
+ ├── schemas/
+ └── lib/
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Integração com API
 
-## Deploy on Vercel
+O frontend consome a API do projeto:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```txt
+api-desafio-juntos-na-aventura
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Principais funcionalidades integradas:
+- listagem de aventuras
+- criação de reservas
+- cálculo dinâmico de tarifas
+- atualização automática do status da viagem
+- geração de links públicos
+
+---
+
+# Regras de Negócio
+
+## Status da Aventura
+
+### pending_group
+Grupo ainda não atingiu o mínimo de participantes.
+
+### confirmed
+Grupo confirmado automaticamente ao atingir o mínimo necessário.
+
+---
+
+# Mensagens Dinâmicas
+
+A plataforma atualiza automaticamente as mensagens conforme o estado do grupo.
+
+### Grupo não confirmado
+> “Faltam apenas X pessoas para garantir a aventura.”
+
+### Grupo confirmado
+> “🎉 Saída Confirmada! Continue compartilhando para reduzir ainda mais o valor.”
+
+### Tarifa mínima atingida
+> “🔥 Tarifa mínima atingida! Garanta sua vaga.”
+
+---
+
+# Scripts Disponíveis
+
+## Desenvolvimento
+
+```bash
+npm run dev
+```
+
+## Build de produção
+
+```bash
+npm run build
+```
+
+## Executar produção
+
+```bash
+npm run start
+```
+
+## Lint
+
+```bash
+npm run lint
+```
+
+---
+
+# Responsividade
+
+A aplicação foi desenvolvida com foco em:
+- responsividade
+- experiência mobile
+- interface moderna
+- acessibilidade
+- feedback visual para ações do usuário
+
+---
+
+# Deploy
+
+O projeto pode ser publicado em:
+- Vercel
+- Netlify
+- Railway
+- AWS
+- qualquer ambiente compatível com Next.js
+
+---
