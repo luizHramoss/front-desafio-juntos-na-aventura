@@ -6,14 +6,14 @@ import { ReserveForm } from "@/components/reserve-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatBRLFromCents, formatShortDate } from "@/lib/format";
-import { getAdventureById } from "@/lib/mock-api";
+import { getAdventureById } from "@/lib/api";
 
 export default async function ReservePage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const { id } = params;
+  const { id } = await params;
   const adventure = await getAdventureById(id);
   if (!adventure) notFound();
 

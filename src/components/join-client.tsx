@@ -2,56 +2,74 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { PartyPopper, Share2 } from "lucide-react";
+import { LoaderCircle, PartyPopper, Share2 } from "lucide-react";
 import { toast } from "sonner";
 
-import type { Adventure } from "@/lib/mock-api";
+import { getJoinData, type JoinData } from "@/lib/api";
 import { formatBRLFromCents, formatShortDate } from "@/lib/format";
-import { useGroupStore } from "@/lib/store";
 import { GroupProgress, type GroupStatus } from "@/components/group-progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-function priceForGroup({
-  fromPriceCents,
-  minPriceCents,
-  currentGroupSize,
-  maxGroupSize,
-}: Pick<
-  Adventure,
-  "fromPriceCents" | "minPriceCents" | "currentGroupSize" | "maxGroupSize"
->) {
-  const t = Math.min(1, currentGroupSize / maxGroupSize);
-  const delta = fromPriceCents - minPriceCents;
-  return Math.round(fromPriceCents - delta * t);
-}
-
 export function JoinClient({
   token,
-  adventure,
+  initialData,
 }: {
   token: string;
-  adventure: Adventure;
+  initialData: JoinData;
 }) {
-  const { groupSizeByToken, increment, setFromServer } = useGroupStore();
+  const [data, setData] = React.useState(initialData);
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
+  const [loadError, setLoadError] = React.useState<string | null>(null);
+
+  const refreshData = React.useCallback(
+    async (silent = false) => {
+      if (!silent) setIsRefreshing(true);
+      try {
+        const next = await getJoinData(token);
+        if (!next) {
+          setLoadError("Link de compartilhamento inválido.");
+          return;
+        }
+        setData(next);
+        setLoadError(null);
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Falha ao atualizar os dados.";
+        setLoadError(message);
+      } finally {
+        if (!silent) setIsRefreshing(false);
+      }
+    },
+    [token]
+  );
 
   React.useEffect(() => {
-    setFromServer(token, adventure.currentGroupSize);
-  }, [adventure.currentGroupSize, setFromServer, token]);
+    const interval = window.setInterval(() => {
+      void refreshData(true);
+    }, 15000);
+    return () => window.clearInterval(interval);
+  }, [refreshData]);
 
-  const current = groupSizeByToken[token] ?? adventure.currentGroupSize;
+  React.useEffect(() => {
+    const onFocus = () => {
+      void refreshData(true);
+    };
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [refreshData]);
+
+  const { adventure } = data;
+
+  const current = data.reservationsCount;
   const max = adventure.maxGroupSize;
+  const min = adventure.minPeople;
 
-  const currentPriceCents = priceForGroup({
-    fromPriceCents: adventure.fromPriceCents,
-    minPriceCents: adventure.minPriceCents,
-    currentGroupSize: current,
-    maxGroupSize: max,
-  });
+  const currentPriceCents = data.currentPricePerPerson;
 
-  const minReached = currentPriceCents <= adventure.minPriceCents;
-  const confirmed = current >= Math.ceil(max * 0.7);
+  const minReached = data.bestPriceReached;
+  const confirmed = data.statusNow === "confirmed";
 
   const status: GroupStatus = minReached
     ? "min_reached"
@@ -59,12 +77,20 @@ export function JoinClient({
       ? "confirmed"
       : "pending";
 
-  const remaining = Math.max(0, max - current);
-  const message = minReached
-    ? "Tarifa mínima atingida. Agora é só celebrar."
+  const missingToConfirm = Math.max(0, min - current);
+
+  const dynamicMessage = minReached
+    ? "🔥 Tarifa mínima atingida! O melhor preço já está garantido para o grupo."
     : confirmed
-      ? "Grupo confirmado. Últimas vagas!"
-      : `Faltam ${remaining} pessoa${remaining === 1 ? "" : "s"} pra destravar mais desconto.`;
+      ? "🎉 Saída Confirmada! Convide mais amigos para tentar reduzir ainda mais a tarifa."
+      : `Esta saída precisa de ${missingToConfirm} pessoa(s) para ser confirmada...`;
+
+  const helperMessage =
+    status === "min_reached"
+      ? "Grupo completo no melhor tier de tarifa."
+      : status === "confirmed"
+        ? "Saída ativa e confirmada."
+        : `Mínimo para confirmar: ${min} pessoas.`;
 
   async function copyLink() {
     try {
@@ -94,7 +120,15 @@ export function JoinClient({
         </CardHeader>
         <CardContent className="space-y-5">
           <div className="rounded-xl border bg-background p-4">
-            <p className="text-sm text-muted-foreground">Preço atual</p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm text-muted-foreground">Preço atual</p>
+              {isRefreshing ? (
+                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                  <LoaderCircle className="size-3 animate-spin" />
+                  Atualizando
+                </span>
+              ) : null}
+            </div>
             <p className="mt-1 text-3xl font-semibold tracking-tight">
               {formatBRLFromCents(currentPriceCents)}
             </p>
@@ -105,19 +139,17 @@ export function JoinClient({
           </div>
 
           <div className="rounded-xl border bg-background p-4">
-            <p className="text-sm font-medium">{message}</p>
+            <p className="text-sm font-medium">{dynamicMessage}</p>
+            <p className="mt-2 text-xs text-muted-foreground">{helperMessage}</p>
+            {loadError ? (
+              <p className="mt-2 text-xs text-destructive">{loadError}</p>
+            ) : null}
             <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-              <Button
-                size="lg"
-                className="flex-1"
-                onClick={() => {
-                  increment(token, max);
-                  toast.success("Você entrou no grupo!");
-                }}
-                disabled={current >= max}
-              >
-                <PartyPopper className="mr-2" />
-                Entrar no grupo
+              <Button size="lg" className="flex-1" asChild>
+                <Link href={`/reserve/${adventure.id}`}>
+                  <PartyPopper className="mr-2" />
+                  Entrar no grupo
+                </Link>
               </Button>
               <Button size="lg" variant="outline" onClick={copyLink}>
                 <Share2 className="mr-2" />
@@ -137,15 +169,19 @@ export function JoinClient({
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           <p className="text-muted-foreground">
-            Este é um mock: o botão simula pessoas entrando para você ver o preço
-            mudando.
+            Os dados são sincronizados com a API em tempo real.
           </p>
           <Button asChild variant="secondary" className="w-full">
             <Link href={`/reserve/${adventure.id}`}>Reservar outra vaga</Link>
           </Button>
-          <p className="text-xs text-muted-foreground">
-            Token: <span className="font-mono">{token}</span>
-          </p>
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => void refreshData()}
+            disabled={isRefreshing}
+          >
+            Atualizar agora
+          </Button>
         </CardContent>
       </Card>
     </div>

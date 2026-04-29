@@ -7,7 +7,15 @@ export function formatBRLFromCents(cents: number) {
 }
 
 export function formatShortDate(isoDate: string) {
-  const d = new Date(isoDate + "T00:00:00");
+  const normalized = isoDate.trim();
+  const d = /^\d{4}-\d{2}-\d{2}$/.test(normalized)
+    ? new Date(`${normalized}T00:00:00`)
+    : new Date(normalized);
+
+  if (Number.isNaN(d.getTime())) {
+    return "Data a confirmar";
+  }
+
   return new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit",
     month: "short",

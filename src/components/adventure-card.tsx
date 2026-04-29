@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ArrowRight, Calendar, MapPin } from "lucide-react";
 
-import type { Adventure } from "@/lib/mock-api";
+import type { Adventure } from "@/lib/api";
 import { formatBRLFromCents, formatShortDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -26,7 +26,7 @@ export function AdventureCard({ adventure }: { adventure: Adventure }) {
         <div className="flex items-start justify-between gap-4">
           <CardTitle className="text-balance">{adventure.name}</CardTitle>
           <Badge variant={isConfirmed ? "success" : "pending"}>
-            {isConfirmed ? "Quase confirmado" : "Em formação"}
+            {isConfirmed ? "Confirmado" : "Em formação"}
           </Badge>
         </div>
         <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">

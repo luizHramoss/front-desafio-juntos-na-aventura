@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-import { reserveAdventure } from "@/lib/mock-api";
+import { reserveAdventure } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -44,10 +44,20 @@ export function ReserveForm({ adventureId }: { adventureId: string }) {
     setIsLoading(true);
     try {
       const res = await reserveAdventure({ adventureId, ...values });
-      toast.success("Reserva iniciada! Link gerado.");
+      toast.success(
+        `Reserva iniciada! Depósito: ${new Intl.NumberFormat("pt-BR", {
+          style: "currency",
+          currency: "BRL",
+          maximumFractionDigits: 0,
+        }).format(res.deposit / 100)}.`
+      );
       router.push(res.joinUrl);
-    } catch {
-      toast.error("Não foi possível gerar o link. Tente novamente.");
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Não foi possível gerar o link. Tente novamente.";
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }

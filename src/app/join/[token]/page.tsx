@@ -4,16 +4,16 @@ import { ArrowLeft } from "lucide-react";
 
 import { JoinClient } from "@/components/join-client";
 import { Button } from "@/components/ui/button";
-import { getJoinData } from "@/lib/mock-api";
+import { getJoinData } from "@/lib/api";
 
 export default async function JoinPage({
   params,
 }: {
-  params: { token: string };
+  params: Promise<{ token: string }>;
 }) {
-  const { token } = params;
-  const adventure = await getJoinData(token);
-  if (!adventure) notFound();
+  const { token } = await params;
+  const data = await getJoinData(token);
+  if (!data) notFound();
 
   return (
     <div className="min-h-screen">
@@ -27,7 +27,7 @@ export default async function JoinPage({
           </Button>
         </div>
 
-        <JoinClient token={token} adventure={adventure} />
+        <JoinClient token={token} initialData={data} />
       </div>
     </div>
   );

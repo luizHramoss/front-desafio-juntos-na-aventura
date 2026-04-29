@@ -4,10 +4,20 @@ import { ArrowRight, Sparkles } from "lucide-react";
 import { AdventureCard } from "@/components/adventure-card";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
-import { listAdventures } from "@/lib/mock-api";
+import { listAdventures } from "@/lib/api";
 
 export default async function Home() {
-  const adventures = await listAdventures();
+  let adventures: Awaited<ReturnType<typeof listAdventures>> = [];
+  let loadError: string | null = null;
+
+  try {
+    adventures = await listAdventures();
+  } catch (error) {
+    loadError =
+      error instanceof Error
+        ? error.message
+        : "Não foi possível carregar as aventuras.";
+  }
 
   return (
     <div className="min-h-screen">
@@ -31,7 +41,7 @@ export default async function Home() {
         <section className="relative overflow-hidden">
           <div className="pointer-events-none absolute inset-0 -z-10">
             <div className="absolute left-1/2 top-[-240px] h-[480px] w-[480px] -translate-x-1/2 rounded-full bg-primary/15 blur-3xl" />
-            <div className="absolute right-[-120px] top-[120px] h-[360px] w-[360px] rounded-full bg-indigo-500/10 blur-3xl" />
+            <div className="absolute right-[-120px] top-[120px] h-[360px] w-[360px] rounded-full bg-emerald-500/10 blur-3xl" />
           </div>
 
           <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
@@ -73,11 +83,18 @@ export default async function Home() {
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {adventures.map((a) => (
-              <AdventureCard key={a.id} adventure={a} />
-            ))}
-          </div>
+          {loadError ? (
+            <div className="rounded-xl border bg-card p-6">
+              <p className="text-sm font-medium">Falha ao carregar aventuras.</p>
+              <p className="mt-1 text-sm text-muted-foreground">{loadError}</p>
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {adventures.map((a) => (
+                <AdventureCard key={a.id} adventure={a} />
+              ))}
+            </div>
+          )}
         </section>
       </main>
     </div>
