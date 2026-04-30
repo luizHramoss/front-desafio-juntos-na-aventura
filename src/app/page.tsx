@@ -63,9 +63,6 @@ export default async function Home() {
                     Ver aventuras <ArrowRight className="ml-1" />
                   </Link>
                 </Button>
-                <Button asChild size="lg" variant="outline">
-                  <Link href="/join/demo">Abrir demo viral</Link>
-                </Button>
               </div>
             </div>
           </div>
